@@ -8,10 +8,11 @@ import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import java.io.File
 import kotlin.reflect.jvm.jvmName
+import kotlin.text.contains
 
 open class ResResize : SqTask() {
-    private val isWinOrLinux = System.getProperty("os.name").lowercase().run {
-        contains("win") || contains("linux")
+    private val isWin = System.getProperty("os.name").lowercase().run {
+        contains("win")
     }
     private lateinit var magickDir: Directory
     private val s = File.separator
@@ -27,7 +28,7 @@ open class ResResize : SqTask() {
         return try {
             if (isDrawablesDirExistAndNotEmpty().not()) return false
             val extensions = project.extensions.getByType(ResResizeExtensions::class.java)
-            if (isWinOrLinux) {
+            if (isWin) {
                 val pathToMagick = extensions.pathToMagick ?: return false
                 magickDir = File(pathToMagick).ifNotExist { return false }
                     .run { project.objects.directoryProperty().apply { set(this@run) }.get() }
@@ -92,7 +93,7 @@ open class ResResize : SqTask() {
             "-quality",
             "80", resultPath
         )
-        if (isWinOrLinux) {
+        if (isWin) {
             val magickExe = magickDir.file("magick.exe").asFile.absolutePath
             convertCommand = arrayOf(magickExe) + convertCommand
         } else {
@@ -103,7 +104,7 @@ open class ResResize : SqTask() {
 
     private fun createCheckPrompt(image: File): Array<String> {
         var checkSizeDefaultCommand = arrayOf("identify", "-format", "%w~%h", image.absolutePath)
-        if (isWinOrLinux) {
+        if (isWin) {
             val magickExe = magickDir.file("magick.exe").asFile.absolutePath
             checkSizeDefaultCommand = arrayOf(magickExe) + checkSizeDefaultCommand
         }
